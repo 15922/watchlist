@@ -67,6 +67,15 @@ class Movie(db.Model):  # 表名将会是 movie
     year = db.Column(db.String(4))  # 电影年份
 
 
+#模板上下文处理函数
+#使用 app.context_processor 装饰器注册一个模板上下文处理函数
+#这个函数返回的变量（以字典键值对的形式）将会统一注入到每一个模板的上下文环境中，因此可以直接在模板中使用
+#我们创建的任意一个模板，都可以在模板中直接使用 user 变量
+@app.context_processor
+def inject_user():  # 函数名可以随意修改
+    user = User.query.first()
+    return dict(user=user)  # 需要返回字典，等同于return {'user': user}
+
 #自定义命令函数把虚拟数据添加到数据库里
 @app.cli.command()
 def forge():
@@ -97,11 +106,12 @@ def forge():
     db.session.commit()
     click.echo('Done.')
 
+
 @app.route('/')
 def index():
-    user = User.query.first()  # 读取用户记录
+    #user = User.query.first()  # 读取用户记录
     movies = Movie.query.all()  # 读取所有电影记录
-    return render_template('index.html', user=user, movies=movies)
+    return render_template('index.html', movies=movies)
 
 
 @app.route('/index')
@@ -121,3 +131,17 @@ def test_url_for():
     print(url_for('test_url_for')) 
     print(url_for('test_url_for', num=2))  
     return 'Test page'
+
+
+@app.errorhandler(404)  # 传入要处理的错误代码
+def page_not_found(e):  # 接受异常对象作为参数
+    #user = User.query.first()
+    return render_template('404.html'), 404  # 返回模板和状态码
+
+
+
+
+
+
+
+
